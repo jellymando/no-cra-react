@@ -108,6 +108,8 @@ resolve: {
 }
 ```
 
+[Webpack + React + TypeScript: Module not found … in … node_modules/react/](https://stackoverflow.com/questions/47721962/webpack-react-typescript-module-not-found-in-node-modules-react)
+
 - **output** : 웹팩의 번들링 결과물에 대한 옵션. 번들링 결과를 path 경로에 filename으로 묶어낸다. entry 설정은 항상 프로젝트 디렉터리 내부이기 때문에 상대 경로로 하는 반면에, output 설정은 항상 프로젝트 디렉터리 내부라는 보장이 없으므로 절대 경로로 한다. path 모듈을 사용하기 위해서 설정 파일의 module.exports 위에 선언해주자.
 
 ```js
@@ -177,6 +179,9 @@ plugins: [
 webpack-cli가 3.x 버전이라면 webpack-dev-server, 4.x 버전이라면 webpack serve 이다!!
 
 webpack-dev-server로 하면 not found module 에러가 계속 나서 찾다가 해결..
+
+[Cannot find module 'webpack/bin/config-yargs'](https://stackoverflow.com/questions/40379139/cannot-find-module-webpack-bin-config-yargs/41182205)
+
 <br/>
 
 [[React] CRA 없이 리액트 환경 만들기](https://baeharam.netlify.app/posts/react/React-CRA-%EC%97%86%EC%9D%B4-%EB%A6%AC%EC%95%A1%ED%8A%B8-%ED%99%98%EA%B2%BD-%EB%A7%8C%EB%93%A4%EA%B8%B0) <br/>
