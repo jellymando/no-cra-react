@@ -177,3 +177,7 @@ plugins: [
 webpack-cli가 3.x 버전이라면 webpack-dev-server, 4.x 버전이라면 webpack serve 이다!!
 
 webpack-dev-server로 하면 not found module 에러가 계속 나서 찾다가 해결..
+<br/>
+
+[[React] CRA 없이 리액트 환경 만들기](https://baeharam.netlify.app/posts/react/React-CRA-%EC%97%86%EC%9D%B4-%EB%A6%AC%EC%95%A1%ED%8A%B8-%ED%99%98%EA%B2%BD-%EB%A7%8C%EB%93%A4%EA%B8%B0) <br/>
+[웹팩(Webpack) 기본 설정법 (Entry/Output/Loader/Plugins)](https://www.daleseo.com/webpack-config/)
