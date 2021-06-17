@@ -8,11 +8,14 @@ module.exports = {
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
+    modules: [resolve(__dirname, "src"), "node_modules"],
   },
   output: {
     path: resolve(__dirname, "build/js"),
     filename: "build.js",
+    libraryTarget: "umd",
   },
+  externals: ["react", "react-dom"],
   module: {
     rules: [
       {
