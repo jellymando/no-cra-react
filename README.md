@@ -39,6 +39,8 @@ yarn add react react-dom
 ```js
 yarn add --dev typescript
 
+npm install -D ts-node
+
 yarn run tsc --init
 ```
 
@@ -49,8 +51,12 @@ tsconfig.json 설정
   "compilerOptions": {
     "sourceMap": true,  // 소스맵(*.map) 파일 생성 여부
     "jsx": "react", // Resolve: Cannot use JSX unless '--jsx' flag is provided
-    "esModuleInterop": true // import * as => import
-  }
+    "esModuleInterop": true, // import * as => import
+    "declaration": true, // .d.ts 파일 생성
+    "outDir": "./build", // 결과물을 저장할 디렉토리 설정
+    "baseUrl": "src" // 절대경로 설정
+  },
+  "includes": ["src"] // 절대경로 설정
 }
 ```
 
@@ -84,7 +90,29 @@ yarn add -D babel-loader css-loader style-loader file-loader ts-loader
 yarn add -D html-webpack-plugin clean-webpack-plugin
 ```
 
-yarn run dev
+### src 경로에 index.tsx, App.tsx 생성
+
+#### index.tsx
+
+```js
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+
+ReactDOM.render(<App />, document.getElementById("root"));
+```
+
+#### App.tsx
+
+```js
+import React from "react";
+
+const App = () => {
+  return <div></div>;
+};
+
+export default App;
+```
 
 ### 웹팩 설정
 
@@ -104,7 +132,8 @@ module.exports = {
 
 ```js
 resolve: {
-  extensions: [".ts", ".tsx", ".js", ".jsx"];
+  extensions: [".ts", ".tsx", ".js", ".jsx"],
+    modules: [resolve(__dirname, "src"), "node_modules"], // 절대경로로 모듈을 불러왔을 때 어떤 디렉토리를 검색해야 하는지 설정
 }
 ```
 
@@ -113,15 +142,23 @@ resolve: {
 - **output** : 웹팩의 번들링 결과물에 대한 옵션. 번들링 결과를 path 경로에 filename으로 묶어낸다. entry 설정은 항상 프로젝트 디렉터리 내부이기 때문에 상대 경로로 하는 반면에, output 설정은 항상 프로젝트 디렉터리 내부라는 보장이 없으므로 절대 경로로 한다. path 모듈을 사용하기 위해서 설정 파일의 module.exports 위에 선언해주자.
 
 ```js
-const path = require('path');
+const { resolve } = require('path');
 
 output: {
-  filename: 'build.js',
-  path: path.resolve(__dirname, 'build/js'),
+  path: resolve(__dirname, 'build'),
+  filename: 'js/build.js',
 }
 ```
 
 > 참고로 \_\_dirname은 NodeJS에서 현재 프로젝트 디렉터리를 의미합니다. npx webpack을 실행하면 프로젝트 최상위 디렉터리에 build.js 파일이 생성되었음을 확인할 수 있습니다.
+
+- **externals** : 특정 import 패키지의 번들링을 방지하고 대신 런타임에 이러한 외부 종속성을 검색
+
+npm 라이브러리를 사용하는 프로젝트에서 라이브러리의 react 컴포넌트를 import하지 못하는 에러 때문에 추가하였다.
+
+```js
+  externals: ["react", "react-dom"],
+```
 
 - **module.rules** : Loader 추가
 
@@ -141,10 +178,11 @@ module: {
       ]
     },
     {
-      test: /\.jfif$/,
+      test: /\.(png|jpg|jpeg|gif)$/,
       loader: 'file-loader',
       options: {
-        name: '[name].[ext]'
+        // 파일명 앞에 img/ 처럼 경로를 붙이면 그 경로에 생성된다.
+        name: 'img/[name].[ext]'
       }
     },
     { test: /\.tsx?$/, loader: "ts-loader" }
@@ -155,13 +193,19 @@ module: {
 - **plugins** : 웹팩을 실행할 때 마다 기존에 있던 번들 파일을 먼저 깔끔히 지우고 싶은 경우에는 clean-webpack-plugin 플러그인을 사용
 
 ```js
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+
 plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: "./public/index.html",
+      minify: false, // index.html minify 여부
     }),
   ],
 ```
+
+> `HtmlWebpackPlugin` template을 설정하지 않으면 `webpack serve`를 해도 리액트 코드가 `$root`에 들어가지 않는다!!
 
 - **mode** : production - 빌드 / development - dev <u>(생략..)</u>
 
@@ -180,9 +224,39 @@ webpack-cli가 3.x 버전이라면 webpack-dev-server, 4.x 버전이라면 webpa
 
 webpack-dev-server로 하면 not found module 에러가 계속 나서 찾다가 해결..
 
-[Cannot find module 'webpack/bin/config-yargs'](https://stackoverflow.com/questions/40379139/cannot-find-module-webpack-bin-config-yargs/41182205)
-
-<br/>
-
+[Cannot find module 'webpack/bin/config-yargs'](https://stackoverflow.com/questions/40379139/cannot-find-module-webpack-bin-config-yargs/41182205)<br/>
 [[React] CRA 없이 리액트 환경 만들기](https://baeharam.netlify.app/posts/react/React-CRA-%EC%97%86%EC%9D%B4-%EB%A6%AC%EC%95%A1%ED%8A%B8-%ED%99%98%EA%B2%BD-%EB%A7%8C%EB%93%A4%EA%B8%B0) <br/>
 [웹팩(Webpack) 기본 설정법 (Entry/Output/Loader/Plugins)](https://www.daleseo.com/webpack-config/)
+
+### 에러 체크
+
+- `index.html`에 js library 참조하니 build 에러. `index.js`에서 import or require.
+
+- css 파일에서 `@import` 사용하면 build 에러. `index.html`에서 직접 폰트 참조.
+
+- build 폴더에 img, js, html 한꺼번에 들어옴 ➡️ `webpack.config.js`에서 파일명 앞에 경로
+
+```js
+options: {
+        // 파일명 앞에 img/ 처럼 경로를 붙이면 그 경로에 생성된다.
+        name: 'img/[name].[ext]'
+      }
+      ~~~
+```
+
+- build 후 license.txt 파일이 생성된다면
+
+```js
+npm install --save-dev terser-webpack-plugin
+```
+
+```js
+const TerserPlugin = require('terser-webpack-plugin');
+
+    optimization: {
+        minimizer: [new TerserPlugin({ extractComments: false })],
+    },
+```
+
+[How to prevent the creation of a LICENSE.txt file?](https://github.com/webpack-contrib/terser-webpack-plugin/issues/229#issuecomment-761294644)
+
